@@ -1,8 +1,29 @@
-# Welcome to your Expo app 👋
+# classsense
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native (Expo) app for monitoring classroom air quality in real time. Connects to an ESP32 sensor node via Supabase.
 
-## Get started
+## Screens
+
+**Live** — displays the latest sensor reading, refreshing every 3 seconds. Shows temperature, humidity, air quality (kohms), and noise level with colour-coded status indicators.
+
+**History** — shows all readings from the last 7 days grouped by day. Each day is expandable. Pull down to refresh.
+
+## Sensors
+
+| Field | Unit | Description |
+|---|---|---|
+| `temperature` | °C | Ambient temperature |
+| `humidity` | % | Relative humidity |
+| `air_quality` | kohms | MQ-series gas sensor resistance |
+| `noise` | 0–4095 | Raw ADC noise level |
+
+## Stack
+
+- React Native + Expo (SDK 54)
+- Expo Router (file-based navigation)
+- Supabase (`sensor_readings` table)
+
+## Setup
 
 1. Install dependencies
 
@@ -10,41 +31,26 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Add your Supabase anon key to `lib/supabase.ts`
+
+3. Start the app
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## Project structure
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+app/
+  (tabs)/
+    _layout.tsx     # bottom tab navigator
+    index.tsx       # Live screen
+    history.tsx     # History screen
+  _layout.tsx       # root stack layout
+  index.tsx         # redirects to tabs
+lib/
+  supabase.ts       # shared Supabase client
+firmware/
+  classsense_firmware/  # ESP32 Arduino sketch
+```
