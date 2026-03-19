@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Celsius -- Classroom Air Quality Monitor</title>
+  <meta name="description" content="Real-time air quality monitoring for daycares and classrooms, built by uOttawa engineering students." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #16A34A;
+      --gl:     #F0FDF4;
+      --gm:     #BBF7D0;
+      --text:   #111827;
+      --sub:    #6B7280;
+      --border: #E5E7EB;
+      --bg:     #F9FAFB;
+      --card:   #FFFFFF;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #FFFFFF;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Nav */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      height: 56px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 9px;
+      font-size: 15px; font-weight: 700; color: var(--text);
+      text-decoration: none; letter-spacing: -0.2px;
+    }
+    .nav-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+      animation: blink 2.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { font-size: 14px; font-weight: 500; color: var(--sub); text-decoration: none; transition: color .15s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-gh {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 13px; font-weight: 600; color: var(--text);
+      text-decoration: none; transition: background .15s;
+    }
+    .nav-gh:hover { background: var(--bg); }
+
+    /* Layout */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+    /* Hero */
+    .hero {
+      padding: 100px 0 80px;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 12px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--green); margin-bottom: 24px;
+    }
+    .eyebrow-bar { width: 20px; height: 2px; background: var(--green); border-radius: 1px; }
+    .hero h1 {
+      font-size: clamp(56px, 9vw, 100px);
+      font-weight: 900; letter-spacing: -3px; line-height: 0.93;
+      margin-bottom: 28px;
+    }
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--sub); max-width: 540px; line-height: 1.65;
+      margin-bottom: 40px;
+    }
+    .hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 40px; }
+    .hero-tag {
+      padding: 6px 14px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--bg);
+      font-size: 13px; font-weight: 500; color: var(--sub);
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 13px 24px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; text-decoration: none;
+      transition: opacity .15s;
+    }
+    .btn-dark  { background: var(--text); color: #FFF; }
+    .btn-dark:hover  { opacity: .8; }
+    .btn-light { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+    .btn-light:hover { background: #F3F4F6; }
+
+    /* Product image placeholder */
+    .product-placeholder {
+      margin-top: 56px;
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid var(--border); background: var(--bg);
+      height: 320px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+    }
+    .placeholder-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--gm); display: flex; align-items: center; justify-content: center;
+    }
+    .placeholder-icon svg { width: 24px; height: 24px; }
+    .placeholder-label { font-size: 14px; color: var(--sub); font-weight: 500; }
+    .placeholder-hint  { font-size: 12px; color: #9CA3AF; }
+
+    /* Stats */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat {
+      padding: 40px 32px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-size: clamp(34px, 4.5vw, 52px);
+      font-weight: 900; letter-spacing: -1.5px; line-height: 1;
+      color: var(--green); margin-bottom: 8px;
+    }
+    .stat-label { font-size: 13px; color: var(--sub); }
+
+    /* Sections */
+    .section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+    .section-bg { background: var(--bg); }
+    .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--green); margin-bottom: 14px;
+    }
+    h2 {
+      font-size: clamp(26px, 3.5vw, 40px);
+      font-weight: 800; letter-spacing: -0.5px; margin-bottom: 14px;
+    }
+    .section-lead {
+      font-size: 16px; color: var(--sub); max-width: 540px;
+      line-height: 1.7; margin-bottom: 48px;
+    }
+
+    /* Sensor grid */
+    .sensor-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; background: var(--border); gap: 1px;
+    }
+    .sensor-card { background: var(--card); padding: 28px 22px; }
+    .sensor-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--gl); margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sensor-icon svg { width: 20px; height: 20px; }
+    .sensor-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .sensor-card p  { font-size: 13px; color: var(--sub); line-height: 1.6; }
+    .range {
+      display: inline-block; margin-top: 12px;
+      background: var(--gl); color: var(--green);
+      font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 5px;
+    }
+
+    /* Flow steps */
+    .flow {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; background: var(--border); gap: 1px;
+    }
+    .flow-step { background: var(--card); padding: 32px 26px; }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--green); color: #FFF;
+      font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .flow-step h3 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+    .flow-step p  { font-size: 13px; color: var(--sub); line-height: 1.65; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+    .tag {
+      background: var(--bg); border: 1px solid var(--border);
+      font-size: 11px; font-weight: 600; color: var(--sub);
+      padding: 3px 8px; border-radius: 5px; font-family: monospace;
+    }
+
+    /* ML */
+    .ml-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .ml-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 32px;
+    }
+    .ml-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .ml-card p  { font-size: 14px; color: var(--sub); line-height: 1.65; }
+    table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+    th {
+      font-size: 10px; font-weight: 700; letter-spacing: .8px;
+      text-transform: uppercase; color: var(--sub);
+      padding: 8px 0; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      font-size: 13px; padding: 9px 0;
+      border-bottom: 1px solid var(--bg); color: var(--text);
+    }
+    td:first-child { font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .formula {
+      margin-top: 18px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px;
+      font-family: monospace; font-size: 13px; line-height: 2; color: var(--text);
+    }
+
+    /* Alerts */
+    .alert-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .alert-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px;
+    }
+    .alert-status {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+    }
+    .status-circle { width: 10px; height: 10px; border-radius: 50%; }
+    .status-name { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+    .alert-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .alert-card p  { font-size: 13px; color: var(--sub); line-height: 1.6; }
+
+    /* Tech */
+    .tech-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; background: var(--border); gap: 1px;
+    }
+    .tech-group { background: var(--card); padding: 26px 22px; }
+    .tech-group h4 {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--sub); margin-bottom: 14px;
+    }
+    .tech-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tech-tag {
+      background: var(--bg); border: 1px solid var(--border);
+      font-size: 12px; font-weight: 500; color: var(--text);
+      padding: 4px 10px; border-radius: 6px;
+    }
+    .tech-tag.green {
+      background: var(--gl); border-color: var(--gm); color: var(--green);
+    }
+
+    /* About */
+    .team-photo {
+      width: 100%; border-radius: 16px; overflow: hidden;
+      border: 1px solid var(--border); margin-bottom: 48px;
+      background: var(--bg); height: 360px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+    }
+    .team-photo img {
+      width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;
+    }
+
+    .about-intro { max-width: 600px; margin-bottom: 48px; }
+    .about-intro p { font-size: 16px; color: var(--sub); line-height: 1.75; }
+
+    .team-row {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+      margin-bottom: 48px;
+    }
+    .member { text-align: center; }
+    .member-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: var(--gl); border: 2px solid var(--gm);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 10px;
+      font-size: 20px; font-weight: 800; color: var(--green);
+    }
+    .member-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .member-role { font-size: 12px; color: var(--sub); line-height: 1.4; }
+
+    .about-footer {
+      padding-top: 28px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .about-footer p { font-size: 14px; color: var(--sub); line-height: 1.6; }
+    .about-footer strong { color: var(--text); }
+
+    /* Footer */
+    footer {
+      padding: 28px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    footer p { font-size: 13px; color: var(--sub); }
+    footer a { color: var(--sub); text-decoration: none; font-size: 13px; }
+    footer a:hover { color: var(--text); }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .sensor-grid { grid-template-columns: repeat(2, 1fr); }
+      .flow         { grid-template-columns: 1fr; }
+      .ml-grid      { grid-template-columns: 1fr; }
+      .alert-grid   { grid-template-columns: 1fr; }
+      .tech-grid    { grid-template-columns: repeat(2, 1fr); }
+      .team-row     { grid-template-columns: repeat(3, 1fr); }
+      .stats-bar    { grid-template-columns: repeat(2, 1fr); }
+      .stat         { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+    @media (max-width: 600px) {
+      nav, .wrap, footer { padding-left: 20px; padding-right: 20px; }
+      .sensor-grid { grid-template-columns: 1fr; }
+      .tech-grid   { grid-template-columns: 1fr; }
+      .team-row    { grid-template-columns: repeat(2, 1fr); }
+      .hero h1     { letter-spacing: -2px; }
+      .nav-links .hide { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-brand">
+    <span class="nav-dot"></span>
+    Celsius
+  </a>
+  <div class="nav-links">
+    <a href="#how-it-works" class="hide">How it works</a>
+    <a href="#ml" class="hide">ML</a>
+    <a href="#about">Team</a>
+    <a href="https://github.com/benfarsi" target="_blank" rel="noopener" class="nav-gh">GitHub</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-bar"></span>
+      uOttawa Engineering
+    </div>
+    <h1>Celsius</h1>
+    <p class="hero-sub">
+      Real-time air quality monitoring for classrooms, built by uOttawa engineering students.
+      Deploying to a real classroom after Design Day.
+    </p>
+    <div class="hero-tags">
+      <span class="hero-tag">Temperature</span>
+      <span class="hero-tag">Humidity</span>
+      <span class="hero-tag">VOC Air Quality</span>
+      <span class="hero-tag">Noise Level</span>
+      <span class="hero-tag">On-Device ML</span>
+      <span class="hero-tag">Live Data</span>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <a href="https://github.com/benfarsi" target="_blank" rel="noopener" class="btn btn-dark">View on GitHub</a>
+      <a href="#how-it-works" class="btn btn-light">How it works</a>
+    </div>
+
+    <!-- Product image placeholder -->
+    <div class="product-placeholder">
+      <div class="placeholder-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+      </div>
+      <span class="placeholder-label">Product photo</span>
+      <span class="placeholder-hint">Add product.jpg to /website/ to show here</span>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num">5,000+</div>
+    <div class="stat-label">Live sensor readings</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">4</div>
+    <div class="stat-label">Environmental sensors</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">1</div>
+    <div class="stat-label">Custom PCB, milled on campus</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">1</div>
+    <div class="stat-label">Trained ML model, on-device</div>
+  </div>
+</div>
+
+<!-- Sensors -->
+<section class="section">
+  <div class="wrap">
+    <div class="eyebrow">Sensors</div>
+    <h2>What it monitors</h2>
+    <p class="section-lead">
+      BME680 and MAX9814 capture four environmental signals every 10 seconds and stream them to the cloud.
+    </p>
+    <div class="sensor-grid">
+      <div class="sensor-card">
+        <div class="sensor-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round">
+            <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+          </svg>
+        </div>
+        <h3>Temperature</h3>
+        <p>Bosch BME680. Classrooms above 28 C can reduce cognitive performance by up to 20%.</p>
+        <span class="range">Ideal: 18 to 28 C</span>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+          </svg>
+        </div>
+        <h3>Humidity</h3>
+        <p>Capacitive sensing via BME680. Low humidity spreads viruses; high humidity promotes mould.</p>
+        <span class="range">Ideal: 20 to 60%</span>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round">
+            <path d="M2 12c1-4 4-6 6-6 4 0 4 6 8 6 2 0 4-1 6-4"/>
+          </svg>
+        </div>
+        <h3>VOC Air Quality</h3>
+        <p>Metal-oxide gas sensor measures volatile organic compounds. Calibrated to an IAQ index by the Bosch BSEC2 library.</p>
+        <span class="range">Good: IAQ below 50</span>
+      </div>
+      <div class="sensor-card">
+        <div class="sensor-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round">
+            <path d="M11 5 6 9H2v6h4l5 4V5z"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          </svg>
+        </div>
+        <h3>Noise Level</h3>
+        <p>Analog envelope from MAX9814 auto-gain mic, sampled by the ESP32 ADC. Classified as Quiet, Moderate, or Loud.</p>
+        <span class="range">Quiet: below 1000 ADC</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="section section-bg" id="how-it-works">
+  <div class="wrap">
+    <div class="eyebrow">Architecture</div>
+    <h2>How it works</h2>
+    <p class="section-lead">
+      Three layers: firmware reads and classifies, Supabase stores, and the React Native app delivers it in real time.
+    </p>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="step-num">1</div>
+        <h3>Firmware on ESP32</h3>
+        <p>Reads the BME680 via I2C using the Bosch BSEC2 library and the MAX9814 via ADC. Every 10 seconds it runs CelsiusIntelligence on-device inference and POSTs a JSON payload to Supabase over HTTPS. WiFiManager stores credentials in flash -- no hardcoding, no reflashing for network changes.</p>
+        <div class="tags">
+          <span class="tag">C/C++</span>
+          <span class="tag">Arduino</span>
+          <span class="tag">BSEC2</span>
+          <span class="tag">TFLite Micro</span>
+          <span class="tag">WiFiManager</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">2</div>
+        <h3>Supabase Backend</h3>
+        <p>PostgreSQL hosted on Supabase. The ESP32 inserts rows via REST API. Each record includes temperature, humidity, air quality, noise, IAQ score, and the CelsiusIntelligence classification label. No custom server -- Supabase handles auth, storage, and realtime.</p>
+        <div class="tags">
+          <span class="tag">Supabase</span>
+          <span class="tag">PostgreSQL</span>
+          <span class="tag">REST API</span>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">3</div>
+        <h3>React Native App</h3>
+        <p>Expo app with three tabs -- Dashboard, Analytics, History. Polls every 5 seconds. Runs 2-sigma anomaly detection on the last 50 readings. Push notifications fire on warning or poor status transitions. Claude Haiku provides contextual teacher tips.</p>
+        <div class="tags">
+          <span class="tag">React Native</span>
+          <span class="tag">Expo SDK 54</span>
+          <span class="tag">TypeScript</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ML -->
+<section class="section" id="ml">
+  <div class="wrap">
+    <div class="eyebrow">Intelligence</div>
+    <h2>CelsiusIntelligence</h2>
+    <p class="section-lead">
+      On-device TinyML runs on the ESP32 itself. No cloud inference, no WiFi dependency.
+      A second statistical system in the app catches anomalies the model might miss.
+    </p>
+    <div class="ml-grid">
+      <div class="ml-card">
+        <h3>On-Device TinyML</h3>
+        <p>
+          A three-layer MLP trained on labelled classroom readings using TensorFlow, quantized to int8,
+          and deployed via TFLite Micro. CelsiusIntelligence classifies every reading in microseconds on the ESP32 itself.
+          Trained by running <code style="font-size:12px;background:#F9FAFB;padding:2px 6px;border-radius:4px;">train_celsiusintelligence.py</code> on the live Supabase dataset.
+        </p>
+        <table>
+          <thead><tr><th>Layer</th><th>Shape</th><th>Activation</th></tr></thead>
+          <tbody>
+            <tr><td>Input</td><td>[1, 3]</td><td>--</td></tr>
+            <tr><td>Dense</td><td>16 units</td><td>ReLU</td></tr>
+            <tr><td>Dense</td><td>16 units</td><td>ReLU</td></tr>
+            <tr><td>Output</td><td>3 classes</td><td>Softmax</td></tr>
+          </tbody>
+        </table>
+        <p style="margin-top:14px;font-size:13px;color:var(--sub);">
+          Outputs: Good / Moderate / Poor<br>
+          Inputs: normalised temperature, humidity, VOC air quality<br>
+          Tensor arena: 8 KB SRAM on ESP32
+        </p>
+      </div>
+      <div class="ml-card">
+        <h3>Statistical Anomaly Detection</h3>
+        <p>
+          The app fetches the last 50 readings on startup and computes a rolling baseline per sensor channel.
+          Any reading more than two standard deviations from the mean triggers an anomaly flag --
+          no labelled data required. It learns the normal range of your specific room.
+        </p>
+        <div class="formula">
+          mu = mean(last 50 readings)<br>
+          sigma = std(last 50 readings)<br>
+          anomaly = |x - mu| > 2 * sigma
+        </div>
+        <p style="margin-top:14px;font-size:13px;color:var(--sub);">
+          Baseline refreshes every 5 minutes. Runs independently per sensor channel.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Alerts -->
+<section class="section section-bg">
+  <div class="wrap">
+    <div class="eyebrow">Alerts</div>
+    <h2>Three-tier alert system</h2>
+    <p class="section-lead">
+      Teachers do not need to watch a screen. Hardware and app signal status independently.
+      Push notifications fire the moment conditions change.
+    </p>
+    <div class="alert-grid">
+      <div class="alert-card">
+        <div class="alert-status">
+          <div class="status-circle" style="background:#16A34A;"></div>
+          <span class="status-name" style="color:#16A34A;">Good</span>
+        </div>
+        <h3>Green LED / Silent</h3>
+        <p>All sensors within range. Temperature 18 to 28 C, humidity 15 to 65%, VOC above 45 kOhm. No action needed.</p>
+      </div>
+      <div class="alert-card">
+        <div class="alert-status">
+          <div class="status-circle" style="background:#D97706;"></div>
+          <span class="status-name" style="color:#D97706;">Warning</span>
+        </div>
+        <h3>Yellow LED / One beep / Push notification</h3>
+        <p>Air quality moderate, or two or more sensors at warning level. App sends a push notification and the AI tip updates with a relevant action.</p>
+      </div>
+      <div class="alert-card">
+        <div class="alert-status">
+          <div class="status-circle" style="background:#DC2626;"></div>
+          <span class="status-name" style="color:#DC2626;">Poor</span>
+        </div>
+        <h3>Red LED / Triple buzzer / Push notification</h3>
+        <p>Any sensor in the danger zone. Buzzer sounds three bursts. App fires an alert dialog and sends an immediate push notification. Open windows now.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tech stack -->
+<section class="section">
+  <div class="wrap">
+    <div class="eyebrow">Stack</div>
+    <h2>Full-stack embedded systems</h2>
+    <p class="section-lead">
+      From PCB fabrication to cloud backend to production mobile app, built from scratch in two weeks.
+    </p>
+    <div class="tech-grid">
+      <div class="tech-group">
+        <h4>Hardware</h4>
+        <div class="tech-tags">
+          <span class="tech-tag">ESP32</span>
+          <span class="tech-tag">BME680</span>
+          <span class="tech-tag">MAX9814</span>
+          <span class="tech-tag">Custom PCB</span>
+          <span class="tech-tag">RGB LED</span>
+          <span class="tech-tag">Buzzer</span>
+        </div>
+      </div>
+      <div class="tech-group">
+        <h4>Firmware</h4>
+        <div class="tech-tags">
+          <span class="tech-tag green">C / C++</span>
+          <span class="tech-tag">Arduino</span>
+          <span class="tech-tag">BSEC2</span>
+          <span class="tech-tag">TFLite Micro</span>
+          <span class="tech-tag">WiFiManager</span>
+          <span class="tech-tag">ArduinoJson</span>
+        </div>
+      </div>
+      <div class="tech-group">
+        <h4>Backend</h4>
+        <div class="tech-tags">
+          <span class="tech-tag green">Supabase</span>
+          <span class="tech-tag">PostgreSQL</span>
+          <span class="tech-tag">REST API</span>
+        </div>
+      </div>
+      <div class="tech-group">
+        <h4>Mobile App</h4>
+        <div class="tech-tags">
+          <span class="tech-tag green">React Native</span>
+          <span class="tech-tag">Expo SDK 54</span>
+          <span class="tech-tag">TypeScript</span>
+          <span class="tech-tag">expo-router</span>
+        </div>
+      </div>
+      <div class="tech-group">
+        <h4>AI / ML</h4>
+        <div class="tech-tags">
+          <span class="tech-tag green">CelsiusIntelligence</span>
+          <span class="tech-tag">TFLite int8</span>
+          <span class="tech-tag">Claude Haiku API</span>
+          <span class="tech-tag">2-sigma detection</span>
+        </div>
+      </div>
+      <div class="tech-group">
+        <h4>Fabrication</h4>
+        <div class="tech-tags">
+          <span class="tech-tag">uOttawa CEED</span>
+          <span class="tech-tag">PCB milling</span>
+          <span class="tech-tag">Makerspace</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section class="section section-bg" id="about">
+  <div class="wrap">
+    <div class="eyebrow">Team</div>
+    <h2>About us</h2>
+
+    <div class="about-intro">
+      <p>
+        We are a group of aspiring engineers from the University of Ottawa.
+        Celsius started as a capstone project and became something we genuinely care about --
+        cleaner air in the spaces where kids learn and grow. Every part of this system,
+        from the PCB we milled in the CEED makerspace to the React Native app, was built by us.
+      </p>
+    </div>
+
+    <!-- Team photo -- drop team.jpg into /website/ to replace this placeholder -->
+    <div class="team-photo" id="team-photo-wrap">
+      <div class="placeholder-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <span class="placeholder-label">Team photo</span>
+      <span class="placeholder-hint">Add team.jpg to /website/ to show here</span>
+    </div>
+    <script>
+      var img = new Image();
+      img.onload = function() {
+        var wrap = document.getElementById('team-photo-wrap');
+        wrap.innerHTML = '';
+        wrap.style.height = 'auto';
+        wrap.appendChild(img);
+      };
+      img.src = 'team.jpg';
+      img.alt = 'The Celsius team';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+    </script>
+
+    <div class="team-row">
+      <div class="member">
+        <div class="member-avatar">B</div>
+        <div class="member-name">Ben</div>
+        <div class="member-role">Firmware and Systems Lead</div>
+      </div>
+      <div class="member">
+        <div class="member-avatar">M</div>
+        <div class="member-name">Maryan</div>
+        <div class="member-role">Hardware and PCB Design</div>
+      </div>
+      <div class="member">
+        <div class="member-avatar">N</div>
+        <div class="member-name">Nadine</div>
+        <div class="member-role">Mobile App and UX</div>
+      </div>
+      <div class="member">
+        <div class="member-avatar">S</div>
+        <div class="member-name">Saaid</div>
+        <div class="member-role">ML and Data Pipeline</div>
+      </div>
+      <div class="member">
+        <div class="member-avatar">C</div>
+        <div class="member-name">Charlie</div>
+        <div class="member-role">Backend and Integration</div>
+      </div>
+    </div>
+
+    <div class="about-footer">
+      <p>University of Ottawa, Faculty of Engineering<br><strong>Design Day, April 1 2026</strong></p>
+      <a href="https://github.com/benfarsi" target="_blank" rel="noopener" class="btn btn-light">
+        github.com/benfarsi
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Celsius / uOttawa Engineering / 2026</p>
+  <a href="https://github.com/benfarsi" target="_blank" rel="noopener">github.com/benfarsi</a>
+</footer>
+
+</body>
+</html>

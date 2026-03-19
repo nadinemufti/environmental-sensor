@@ -1,26 +1,43 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
+// Active colour matches the app's primary green (healthy air theme)
+const ACTIVE   = '#16A34A';
+const INACTIVE = '#94A3B8';
+
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0a0a0a',
-          borderTopColor: '#1a1a1a',
-          borderTopWidth: 1,
+          backgroundColor: '#FFFFFF',
+          borderTopColor:  '#E2E8F0',
+          borderTopWidth:  1,
+          height:          62,
+          paddingBottom:   8,
+          paddingTop:      6,
         },
-        tabBarActiveTintColor: '#00ff99',
-        tabBarInactiveTintColor: '#444',
+        tabBarActiveTintColor:   ACTIVE,
+        tabBarInactiveTintColor: INACTIVE,
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '700' },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Live',
+          title: 'Dashboard',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="radio-outline" size={size} color={color} />
+            <Ionicons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="learn"
+        options={{
+          title: 'Teacher',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="bar-chart" size={size} color={color} />
           ),
         }}
       />
@@ -29,7 +46,7 @@ export default function TabLayout() {
         options={{
           title: 'History',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time-outline" size={size} color={color} />
+            <Ionicons name="time" size={size} color={color} />
           ),
         }}
       />
