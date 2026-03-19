@@ -22,7 +22,7 @@
  * PCB pinout:
  *   BME680  SDA=GPIO21, SCL=GPIO22
  *   MAX9814 OUT=GPIO34
- *   LED_RED=GPIO15, LED_YELLOW=GPIO19, LED_GREEN=GPIO5, BUZZER=GPIO18
+ *   LED_RED=GPIO15, LED_YELLOW=GPIO5, LED_GREEN=GPIO19, BUZZER=GPIO18
  */
 
 #include <Wire.h>
@@ -63,8 +63,8 @@ const unsigned int g_model_len = sizeof(g_model);
 // ── Pin definitions ───────────────────────────────────────────────────────────
 #define MIC_PIN    34   // MAX9814 OUT -- GPIO34 (ADC1_CH6, input-only, no pull)
 #define LED_RED    15
-#define LED_YELLOW 19
-#define LED_GREEN  5
+#define LED_YELLOW 5    // swapped: yellow is now GPIO5
+#define LED_GREEN  19   // swapped: green is now GPIO19
 #define BUZZER     18
 
 // ── Timing ────────────────────────────────────────────────────────────────────
