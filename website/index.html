@@ -42,8 +42,9 @@
     }
     .nav-brand {
       display: flex; align-items: center; gap: 9px;
-      font-size: 15px; font-weight: 700; color: var(--text);
-      text-decoration: none; letter-spacing: -0.2px;
+      font-size: 13px; font-weight: 800; color: var(--text);
+      text-decoration: none; letter-spacing: 2px;
+      text-transform: uppercase;
     }
     .nav-dot {
       width: 8px; height: 8px; border-radius: 50%;
@@ -70,6 +71,7 @@
     .hero {
       padding: 100px 0 80px;
       border-bottom: 1px solid var(--border);
+      background: linear-gradient(160deg, #f0fdf4 0%, #ffffff 50%);
     }
     .hero-eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
@@ -80,6 +82,7 @@
     .hero h1 {
       font-size: clamp(56px, 9vw, 100px);
       font-weight: 900; letter-spacing: -3px; line-height: 0.93;
+      text-transform: uppercase;
       margin-bottom: 28px;
     }
     .hero-sub {
@@ -145,8 +148,11 @@
       text-transform: uppercase; color: var(--green); margin-bottom: 14px;
     }
     h2 {
-      font-size: clamp(26px, 3.5vw, 40px);
-      font-weight: 800; letter-spacing: -0.5px; margin-bottom: 14px;
+      font-size: clamp(22px, 3vw, 34px);
+      font-weight: 800; letter-spacing: 2px;
+      text-transform: uppercase;
+      font-family: 'Inter', system-ui, sans-serif;
+      margin-bottom: 14px;
     }
     .section-lead {
       font-size: 16px; color: var(--sub); max-width: 540px;
@@ -159,14 +165,15 @@
       border: 1px solid var(--border); border-radius: 16px;
       overflow: hidden; background: var(--border); gap: 1px;
     }
-    .sensor-card { background: var(--card); padding: 28px 22px; }
+    .sensor-card { background: var(--card); padding: 28px 22px; transition: box-shadow .2s; }
+    .sensor-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
     .sensor-icon {
       width: 40px; height: 40px; border-radius: 10px;
       background: var(--gl); margin-bottom: 16px;
       display: flex; align-items: center; justify-content: center;
     }
     .sensor-icon svg { width: 20px; height: 20px; }
-    .sensor-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .sensor-card h3 { font-size: 12px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1.2px; }
     .sensor-card p  { font-size: 13px; color: var(--sub); line-height: 1.6; }
     .range {
       display: inline-block; margin-top: 12px;
@@ -180,7 +187,8 @@
       border: 1px solid var(--border); border-radius: 16px;
       overflow: hidden; background: var(--border); gap: 1px;
     }
-    .flow-step { background: var(--card); padding: 32px 26px; }
+    .flow-step { background: var(--card); padding: 32px 26px; transition: box-shadow .2s; }
+    .flow-step:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
     .step-num {
       width: 32px; height: 32px; border-radius: 8px;
       background: var(--green); color: #FFF;
@@ -188,7 +196,7 @@
       display: flex; align-items: center; justify-content: center;
       margin-bottom: 16px;
     }
-    .flow-step h3 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+    .flow-step h3 { font-size: 12px; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1.2px; }
     .flow-step p  { font-size: 13px; color: var(--sub); line-height: 1.65; }
     .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
     .tag {
@@ -202,8 +210,10 @@
     .ml-card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 16px; padding: 32px;
+      transition: box-shadow .2s;
     }
-    .ml-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .ml-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+    .ml-card h3 { font-size: 12px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1.2px; }
     .ml-card p  { font-size: 14px; color: var(--sub); line-height: 1.65; }
     table { width: 100%; border-collapse: collapse; margin-top: 18px; }
     th {
@@ -229,13 +239,15 @@
     .alert-card {
       background: var(--card); border: 1px solid var(--border);
       border-radius: 16px; padding: 28px;
+      transition: box-shadow .2s;
     }
+    .alert-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
     .alert-status {
       display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
     }
     .status-circle { width: 10px; height: 10px; border-radius: 50%; }
     .status-name { font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
-    .alert-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .alert-card h3 { font-size: 12px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1.2px; }
     .alert-card p  { font-size: 13px; color: var(--sub); line-height: 1.6; }
 
     /* Tech */
@@ -281,13 +293,17 @@
     .member { text-align: center; }
     .member-avatar {
       width: 72px; height: 72px; border-radius: 50%;
-      background: var(--gl); border: 2px solid var(--gm);
+      background: linear-gradient(135deg, var(--gl), var(--gm));
+      border: 2px solid var(--green);
+      box-shadow: 0 0 0 4px var(--gl);
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 10px;
-      font-size: 20px; font-weight: 800; color: var(--green);
+      margin: 0 auto 12px;
+      font-size: 20px; font-weight: 900; color: var(--green);
+      transition: transform .2s;
     }
-    .member-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
-    .member-role { font-size: 12px; color: var(--sub); line-height: 1.4; }
+    .member:hover .member-avatar { transform: translateY(-3px); }
+    .member-name { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .member-role { font-size: 11px; color: var(--sub); line-height: 1.5; }
 
     .about-footer {
       padding-top: 28px; border-top: 1px solid var(--border);
@@ -706,27 +722,27 @@
       <div class="member">
         <div class="member-avatar">B</div>
         <div class="member-name">Ben</div>
-        <div class="member-role">Firmware and Systems Lead</div>
+        <div class="member-role">Firmware & ML Lead</div>
       </div>
       <div class="member">
         <div class="member-avatar">M</div>
         <div class="member-name">Maryan</div>
-        <div class="member-role">Hardware and PCB Design</div>
+        <div class="member-role">Mechanical Lead (SolidWorks)</div>
       </div>
       <div class="member">
         <div class="member-avatar">N</div>
         <div class="member-name">Nadine</div>
-        <div class="member-role">Mobile App and UX</div>
+        <div class="member-role">Creative & UX Lead</div>
       </div>
       <div class="member">
         <div class="member-avatar">S</div>
         <div class="member-name">Saaid</div>
-        <div class="member-role">ML and Data Pipeline</div>
+        <div class="member-role">ML & Data Pipeline Engineer</div>
       </div>
       <div class="member">
         <div class="member-avatar">C</div>
         <div class="member-name">Charlie</div>
-        <div class="member-role">Backend and Integration</div>
+        <div class="member-role">Backend & Cloud Architect</div>
       </div>
     </div>
 
