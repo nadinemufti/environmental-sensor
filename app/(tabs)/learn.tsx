@@ -167,6 +167,149 @@ function StatChip({ label, value, unit, color }: { label: string; value: string;
   );
 }
 
+// ── Report Card ───────────────────────────────────────────────────────────────
+
+type Grade = 'A+' | 'A' | 'B' | 'C' | 'F';
+
+type GradeResult = {
+  grade:  Grade;
+  color:  string;
+  tip:    string;
+};
+
+const GRADE_COLORS: Record<Grade, string> = {
+  'A+': '#16A34A',
+  'A':  '#22C55E',
+  'B':  '#EAB308',
+  'C':  '#F97316',
+  'F':  '#DC2626',
+};
+
+function gradeTemperature(stats: SensorStats): GradeResult {
+  const { avg, min, max } = stats;
+  if (avg >= 20 && avg <= 24 && min >= 18 && max <= 26)
+    return { grade: 'A+', color: GRADE_COLORS['A+'], tip: 'Temperature was perfect for learning all day.' };
+  if (avg >= 18 && avg <= 26)
+    return { grade: 'A',  color: GRADE_COLORS['A'],  tip: 'Temperature stayed in the comfortable range.' };
+  if (avg >= 16 && avg <= 28)
+    return { grade: 'B',  color: GRADE_COLORS['B'],  tip: 'Temperature drifted slightly. Check windows or thermostat.' };
+  if (avg >= 14 && avg <= 30)
+    return { grade: 'C',  color: GRADE_COLORS['C'],  tip: 'Temperature was frequently outside the ideal range today.' };
+  return       { grade: 'F',  color: GRADE_COLORS['F'],  tip: 'Dangerous temperature readings. Check HVAC immediately.' };
+}
+
+function gradeHumidity(stats: SensorStats): GradeResult {
+  const { avg, min, max } = stats;
+  if (avg >= 40 && avg <= 55 && min >= 30 && max <= 60)
+    return { grade: 'A+', color: GRADE_COLORS['A+'], tip: 'Humidity was ideal all day — comfortable and healthy.' };
+  if (avg >= 30 && avg <= 60)
+    return { grade: 'A',  color: GRADE_COLORS['A'],  tip: 'Humidity stayed in the healthy range.' };
+  if (avg >= 25 && avg <= 65)
+    return { grade: 'B',  color: GRADE_COLORS['B'],  tip: 'Humidity was slightly off. A small humidifier may help.' };
+  if (avg >= 20 && avg <= 70)
+    return { grade: 'C',  color: GRADE_COLORS['C'],  tip: 'Low or high humidity today. Consider a humidifier or dehumidifier.' };
+  return       { grade: 'F',  color: GRADE_COLORS['F'],  tip: 'Extreme humidity levels — this can spread illness or cause mould.' };
+}
+
+function gradeAirQuality(stats: SensorStats): GradeResult {
+  const { avg } = stats;
+  if (avg >= 100)
+    return { grade: 'A+', color: GRADE_COLORS['A+'], tip: 'Air quality was excellent today.' };
+  if (avg >= 60)
+    return { grade: 'A',  color: GRADE_COLORS['A'],  tip: 'Air quality was clean and comfortable.' };
+  if (avg >= 40)
+    return { grade: 'B',  color: GRADE_COLORS['B'],  tip: 'Air quality was acceptable. Try opening a window mid-day.' };
+  if (avg >= 25)
+    return { grade: 'C',  color: GRADE_COLORS['C'],  tip: 'Air quality was poor. Ventilate more frequently.' };
+  return       { grade: 'F',  color: GRADE_COLORS['F'],  tip: 'Very poor air quality today. Open windows and check ventilation.' };
+}
+
+const GRADE_ORDER: Grade[] = ['A+', 'A', 'B', 'C', 'F'];
+
+function overallGrade(grades: Grade[]): Grade {
+  const worst = grades.reduce((w, g) =>
+    GRADE_ORDER.indexOf(g) > GRADE_ORDER.indexOf(w) ? g : w
+  , 'A+' as Grade);
+  const avgIdx = Math.round(
+    grades.reduce((s, g) => s + GRADE_ORDER.indexOf(g), 0) / grades.length
+  );
+  return GRADE_ORDER[Math.min(GRADE_ORDER.indexOf(worst), avgIdx + 1)];
+}
+
+type ReportCardProps = {
+  tempStats: SensorStats;
+  humStats:  SensorStats;
+  aqStats:   SensorStats;
+};
+
+function ReportCard({ tempStats, humStats, aqStats }: ReportCardProps) {
+  const temp = gradeTemperature(tempStats);
+  const hum  = gradeHumidity(humStats);
+  const aq   = gradeAirQuality(aqStats);
+  const overall = overallGrade([temp.grade, hum.grade, aq.grade]);
+
+  return (
+    <View style={rcStyles.card}>
+      <View style={rcStyles.cardHeader}>
+        <Text style={rcStyles.cardTitle}>REPORT CARD</Text>
+        <View style={[rcStyles.overallBadge, { backgroundColor: GRADE_COLORS[overall] }]}>
+          <Text style={rcStyles.overallGrade}>{overall}</Text>
+        </View>
+      </View>
+
+      <GradeRow label="Temperature" result={temp}  accent="#EF4444" />
+      <GradeRow label="Humidity"    result={hum}   accent="#6366F1" />
+      <GradeRow label="Air Quality" result={aq}    accent="#16A34A" />
+    </View>
+  );
+}
+
+function GradeRow({ label, result, accent }: { label: string; result: GradeResult; accent: string }) {
+  return (
+    <View style={rcStyles.row}>
+      <View style={[rcStyles.rowAccent, { backgroundColor: accent }]} />
+      <View style={{ flex: 1 }}>
+        <Text style={rcStyles.rowLabel}>{label}</Text>
+        <Text style={rcStyles.rowTip}>{result.tip}</Text>
+      </View>
+      <Text style={[rcStyles.gradeLetter, { color: result.color }]}>{result.grade}</Text>
+    </View>
+  );
+}
+
+const rcStyles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF', borderRadius: 16, marginBottom: 14,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F2F2F7',
+  },
+  cardTitle: {
+    fontSize: 11, fontWeight: '800', color: '#000000',
+    letterSpacing: 1.5,
+  },
+  overallBadge: {
+    width: 44, height: 44, borderRadius: 12,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  overallGrade: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
+
+  row: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F2F2F7',
+  },
+  rowAccent:  { width: 3, height: 36, borderRadius: 2, flexShrink: 0 },
+  rowLabel:   { fontSize: 12, fontWeight: '700', color: '#000000', marginBottom: 3 },
+  rowTip:     { fontSize: 12, color: '#8E8E93', lineHeight: 16 },
+  gradeLetter: { fontSize: 32, fontWeight: '900', letterSpacing: -1, minWidth: 40, textAlign: 'right' },
+});
+
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function TeacherDashboard() {
@@ -257,6 +400,8 @@ export default function TeacherDashboard() {
                 <Text style={styles.summaryLbl}>Avg air quality</Text>
               </View>
             </View>
+
+            <ReportCard tempStats={tempStats} humStats={humStats} aqStats={aqStats} />
 
             <ChartCard
               title="Temperature" unit="°C" color="#EF4444"
