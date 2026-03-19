@@ -385,9 +385,10 @@ export default function DashboardScreen() {
     return () => clearInterval(id);
   }, [fetchLatest]);
 
-  const status  = data ? overallStatus(data) : 'good';
-  const isPoor  = status === 'poor';
-  const screenBg = SCREEN_BG[status];
+  const status   = data ? overallStatus(data) : 'good';
+  const isPoor   = status === 'poor';
+  const isGrey   = offline || !data;
+  const screenBg = isGrey ? '#E5E7EB' : SCREEN_BG[status];
 
   // Flash animation when poor
   useEffect(() => {
@@ -427,7 +428,7 @@ export default function DashboardScreen() {
   return (
     <View style={[styles.root, { backgroundColor: screenBg }]}>
       <StatusBar
-        barStyle={isPoor ? 'light-content' : 'dark-content'}
+        barStyle={isPoor && !isGrey ? 'light-content' : 'dark-content'}
         backgroundColor={screenBg}
       />
 
@@ -440,20 +441,19 @@ export default function DashboardScreen() {
             { transform: [{ scale: pulse }] },
             isPoor && { backgroundColor: '#FCA5A5' },
           ]} />
-          <Text style={[styles.liveTime, isPoor && styles.onRed]}>{timeText}</Text>
-          {offline && (
-            <>
-              <Ionicons name="cloud-offline" size={12} color={isPoor ? '#FCA5A5' : '#8E8E93'} />
-              {mins != null && mins > 0 && (
-                <Text style={[styles.liveTime, isPoor && styles.onRed]}>{mins}m ago</Text>
-              )}
-            </>
-          )}
+          <Text style={[styles.liveTime, isPoor && !isGrey && styles.onRed]}>{timeText}</Text>
         </View>
       </View>
 
       {/* Status banner */}
-      {isPoor ? (
+      {isGrey ? (
+        <View style={[styles.statusStrip, { backgroundColor: '#D1D5DB', borderBottomColor: '#C0C4CB' }]}>
+          <Ionicons name="cloud-offline" size={14} color="#6B7280" />
+          <Text style={[styles.statusTitle, { color: '#6B7280' }]}>
+            Sensor offline{mins != null && mins > 0 ? ` -- ${mins}m ago` : ''}
+          </Text>
+        </View>
+      ) : isPoor ? (
         <View style={styles.poorBanner}>
           <Text style={styles.poorBannerText}>POOR AIR QUALITY</Text>
           <Text style={styles.poorBannerSub}>Act now -- open windows immediately</Text>
@@ -465,11 +465,6 @@ export default function DashboardScreen() {
         }]}>
           <View style={[styles.statusDot, { backgroundColor: ACCENT[status] }]} />
           <Text style={[styles.statusTitle, { color: ACCENT[status] }]}>{headline}</Text>
-          {offline && (
-            <Text style={[styles.statusTitle, { color: '#8E8E93', marginLeft: 'auto' as any }]}>
-              Offline
-            </Text>
-          )}
         </View>
       )}
 
@@ -533,7 +528,7 @@ export default function DashboardScreen() {
       )}
 
       {/* Poor state flash overlay — touch-transparent, on top of everything */}
-      {isPoor && (
+      {isPoor && !isGrey && (
         <Animated.View
           pointerEvents="none"
           style={[
