@@ -94,7 +94,7 @@ function ChartCard({ title, unit, color, data, labels, stats, idealLow, idealHig
     Math.abs(stats.now - ((idealLow + idealHigh) / 2)) < (idealHigh - idealLow) ? '#D97706' : '#DC2626';
 
   return (
-    <Animated.View style={[styles.chartCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+    <Animated.View style={[styles.chartCard, { opacity: fadeAnim, transform: [{ translateY: slideAnim }], borderTopColor: color }]}>
       {/* Card header */}
       <View style={styles.chartCardHeader}>
         <View style={[styles.chartAccent, { backgroundColor: color }]} />
@@ -114,17 +114,17 @@ function ChartCard({ title, unit, color, data, labels, stats, idealLow, idealHig
         <LineChart
           data={{
             labels: safeLabels,
-            datasets: [{ data: safeData, color: () => color, strokeWidth: 2.5 }],
+            datasets: [{ data: safeData, color: () => color, strokeWidth: 4 }],
           }}
           width={CHART_W - 32}
           height={CHART_H}
           chartConfig={{
-            backgroundColor:              '#FFFFFF',
-            backgroundGradientFrom:       '#FFFFFF',
+            backgroundColor:              color + '08',
+            backgroundGradientFrom:       color + '08',
             backgroundGradientTo:         '#FFFFFF',
             decimalPlaces:                1,
             color:                        (opacity = 1) => color,
-            labelColor:                   () => '#C7C7CC',
+            labelColor:                   () => '#8E8E93',
             propsForDots:                 { r: '0' },
             propsForBackgroundLines:      { stroke: '#F2F2F7', strokeWidth: 1, strokeDasharray: '3,3' },
             propsForLabels:               { fontSize: 11, fontWeight: '600' },
@@ -317,8 +317,9 @@ const styles = StyleSheet.create({
   chartCard: {
     backgroundColor: '#FFFFFF', borderRadius: 16,
     marginBottom: 14, overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
+    borderTopWidth: 3,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
   },
   chartCardHeader: {
     flexDirection: 'row', alignItems: 'center',

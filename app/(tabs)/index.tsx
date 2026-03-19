@@ -90,14 +90,33 @@ function noiseStatus(v: number): Status {
   return 'poor';
 }
 function overallStatus(row: SensorRow): Status {
-  const statuses = [
-    tempStatus(row.temperature),
-    humStatus(row.humidity),
-    aqStatus(row.air_quality),
-  ];
-  if (statuses.includes('poor'))    return 'poor';
-  if (statuses.includes('warning')) return 'warning';
-  return 'good';
+  const iaq = row.iaq_score != null ? row.iaq_score : kOhmToIAQ(row.air_quality);
+
+  // Extreme override: any single reading at critical levels -> immediately poor
+  const extremeCritical =
+    iaq >= 400 ||
+    row.temperature < 10 || row.temperature > 38 ||
+    row.humidity    < 5  || row.humidity    > 85;
+
+  if (extremeCritical) return 'poor';
+
+  // Multi-sensor formula: need 2+ sensors bad to be overall poor.
+  // 1 bad sensor alone = warning (yellow).
+  const badCount =
+    (tempStatus(row.temperature) === 'poor' ? 1 : 0) +
+    (humStatus(row.humidity)     === 'poor' ? 1 : 0) +
+    (aqStatus(row.air_quality)   === 'poor' ? 1 : 0);
+
+  if (badCount >= 2) return 'poor';
+  if (badCount === 1) return 'warning';
+
+  // No bad sensors -- check for any moderate
+  const anyModerate =
+    tempStatus(row.temperature) === 'warning' ||
+    humStatus(row.humidity)     === 'warning' ||
+    aqStatus(row.air_quality)   === 'warning';
+
+  return anyModerate ? 'warning' : 'good';
 }
 
 function kOhmToIAQ(kOhm: number): number {

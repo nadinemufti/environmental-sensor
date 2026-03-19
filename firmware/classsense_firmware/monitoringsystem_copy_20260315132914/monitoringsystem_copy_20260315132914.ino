@@ -10,9 +10,11 @@
  *   Output : [1, 3] float32  softmax  (Good, Moderate, Poor)
  *
  * Status logic:
- *   GREEN  -- all sensors in good range
- *   YELLOW -- any sensor in moderate/warning range
- *   RED    -- any sensor in critical range + siren (800-2500 Hz sweep, fast)
+ *   GREEN  -- all 3 sensors (temp, hum, IAQ) in good range
+ *   YELLOW -- any sensor moderate, OR exactly 1 sensor bad
+ *   RED    -- 2+ sensors bad, OR any extreme reading (IAQ>=400, temp<10/>38, hum<5/>85%)
+ *             + siren (800-2500 Hz sweep, 10 Hz steps, 5 ms delay)
+ *   ALARM  -- 5 consecutive RED readings latch a continuous buzzer loop (power-cycle to reset)
  *
  * WiFi: WiFiManager captive portal ("Celsius-Setup" AP on first boot).
  *       Credentials saved to NVS flash. eduroam not supported -- use hotspot.
@@ -143,18 +145,30 @@ void setup() {
 }
 
 // ── loop() ────────────────────────────────────────────────────────────────────
-static unsigned long lastPush = 0;
-static const char*   cachedStatus = "";
-static const char*   cachedLabel  = "Good";
+static unsigned long lastPush       = 0;
+static const char*   cachedStatus   = "";
+static const char*   cachedLabel    = "Good";
+static int           consecutiveRed = 0;   // counts back-to-back POOR readings
+static bool          alarmActive    = false; // latched: buzzer loops until reset
 
 void loop() {
+  // ── Continuous alarm latch ─────────────────────────────────────────────────
+  // Once triggered (5 consecutive POOR), buzzer loops forever until power cycle.
+  if (alarmActive) {
+    digitalWrite(LED_GREEN,  LOW);
+    digitalWrite(LED_YELLOW, LOW);
+    digitalWrite(LED_RED,    HIGH);
+    soundSiren();
+    return; // skip normal logic while alarm is active
+  }
+
   bool newData = readBsec();
 
   if (newData) {
     g_noise = analogRead(MIC_PIN);
 
-    // ── Threshold classification ────────────────────────────────────────────
-    // Air quality: IAQ 0-500 (lower = better)
+    // ── Per-sensor classification ───────────────────────────────────────────
+    // IAQ 0-500 (lower = better)
     bool aqGood     = g_iaq < 100;
     bool aqModerate = g_iaq >= 100 && g_iaq < 200;
     bool aqBad      = g_iaq >= 200;
@@ -165,22 +179,49 @@ void loop() {
                         (g_temperature > 28  && g_temperature <= 32);
     bool tempBad      = g_temperature < 15 || g_temperature > 32;
 
-    // Humidity (relaxed range for Canadian indoor winter)
+    // Humidity
     bool humGood     = g_humidity >= 15 && g_humidity <= 65;
     bool humModerate = (g_humidity >= 10 && g_humidity < 15) ||
                        (g_humidity > 65  && g_humidity <= 75);
     bool humBad      = g_humidity < 10 || g_humidity > 75;
 
-    bool anyBad      = aqBad  || tempBad  || humBad;
+    // ── Multi-sensor danger formula ─────────────────────────────────────────
+    // Rule: 1 bad sensor alone = WARNING (yellow).
+    //       2+ bad sensors     = POOR (red).
+    //       Extreme readings   = POOR regardless of count.
+    //       5 consecutive POOR = continuous alarm latch.
+    int badCount =  (aqBad   ? 1 : 0)
+                  + (tempBad ? 1 : 0)
+                  + (humBad  ? 1 : 0);
+
+    bool extremeCritical = (g_iaq          >= 400)
+                        || (g_temperature  <  10.0f || g_temperature > 38.0f)
+                        || (g_humidity     <   5.0f || g_humidity    > 85.0f);
+
     bool anyModerate = aqModerate || tempModerate || humModerate;
 
-    // ── LEDs ─────────────────────────────────────────────────────────────────
-    if (anyBad) {
+    bool isPoor    = (badCount >= 2) || extremeCritical;
+    bool isWarning = !isPoor && (badCount == 1 || anyModerate);
+
+    // ── Consecutive POOR counter ────────────────────────────────────────────
+    if (isPoor) {
+      consecutiveRed++;
+      Serial.printf("[alarm] consecutive POOR count: %d/5\n", consecutiveRed);
+      if (consecutiveRed >= 5) {
+        alarmActive = true;
+        Serial.println("[alarm] DANGER ZONE -- continuous alarm activated");
+      }
+    } else {
+      consecutiveRed = 0;
+    }
+
+    // ── LEDs + buzzer ───────────────────────────────────────────────────────
+    if (isPoor) {
       digitalWrite(LED_GREEN,  LOW);
       digitalWrite(LED_YELLOW, LOW);
       digitalWrite(LED_RED,    HIGH);
       soundSiren();
-    } else if (anyModerate) {
+    } else if (isWarning) {
       digitalWrite(LED_GREEN,  LOW);
       digitalWrite(LED_YELLOW, HIGH);
       digitalWrite(LED_RED,    LOW);
@@ -192,16 +233,19 @@ void loop() {
       noTone(BUZZER);
     }
 
-    // ── CelsiusIntelligence inference ─────────────────────────────────────
+    // ── CelsiusIntelligence inference ───────────────────────────────────────
     cachedLabel = runCelsiusIntelligence(g_temperature, g_humidity, g_air_quality);
 
-    if (anyBad)          cachedStatus = "poor";
-    else if (anyModerate) cachedStatus = "warning";
-    else                  cachedStatus = "good";
+    if (isPoor)       cachedStatus = "poor";
+    else if (isWarning) cachedStatus = "warning";
+    else              cachedStatus = "good";
 
-    Serial.printf("[reading] temp=%.1fC  hum=%.1f%%  aq=%.1fkO  iaq=%.0f  noise=%d  status=%s  CI=%s\n",
-                  g_temperature, g_humidity, g_air_quality, g_iaq, g_noise,
-                  cachedStatus, cachedLabel);
+    Serial.printf(
+      "[reading] temp=%.1fC  hum=%.1f%%  aq=%.1fkO  iaq=%.0f  noise=%d  "
+      "bad=%d  status=%s  CI=%s\n",
+      g_temperature, g_humidity, g_air_quality, g_iaq, g_noise,
+      badCount, cachedStatus, cachedLabel
+    );
   }
 
   // ── POST to Supabase ────────────────────────────────────────────────────────
