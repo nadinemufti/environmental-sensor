@@ -90,33 +90,25 @@ function noiseStatus(v: number): Status {
   return 'poor';
 }
 function overallStatus(row: SensorRow): Status {
+  // Use iaq_score from DB if available (matches what the card shows).
+  // Fall back to kOhmToIAQ only if the column hasn't been posted yet.
   const iaq = row.iaq_score != null ? row.iaq_score : kOhmToIAQ(row.air_quality);
 
-  // Extreme override: any single reading at critical levels -> immediately poor
-  const extremeCritical =
-    iaq >= 400 ||
-    row.temperature < 10 || row.temperature > 38 ||
-    row.humidity    < 5  || row.humidity    > 85;
+  // Extreme override -- auto-poor regardless of count
+  if (iaq >= 400 || row.temperature < 10 || row.temperature > 38 ||
+      row.humidity < 5 || row.humidity > 85) return 'poor';
 
-  if (extremeCritical) return 'poor';
+  // 2+ sensors bad = poor, 1 bad = warning (noise excluded entirely)
+  const tS = tempStatus(row.temperature);
+  const hS = humStatus(row.humidity);
+  const aS = iaqStatus(iaq);   // same path as the card -- no more kOhm mismatch
 
-  // Multi-sensor formula: need 2+ sensors bad to be overall poor.
-  // 1 bad sensor alone = warning (yellow).
-  const badCount =
-    (tempStatus(row.temperature) === 'poor' ? 1 : 0) +
-    (humStatus(row.humidity)     === 'poor' ? 1 : 0) +
-    (aqStatus(row.air_quality)   === 'poor' ? 1 : 0);
-
+  const badCount = (tS === 'poor' ? 1 : 0) + (hS === 'poor' ? 1 : 0) + (aS === 'poor' ? 1 : 0);
   if (badCount >= 2) return 'poor';
   if (badCount === 1) return 'warning';
 
-  // No bad sensors -- check for any moderate
-  const anyModerate =
-    tempStatus(row.temperature) === 'warning' ||
-    humStatus(row.humidity)     === 'warning' ||
-    aqStatus(row.air_quality)   === 'warning';
-
-  return anyModerate ? 'warning' : 'good';
+  if (tS === 'warning' || hS === 'warning' || aS === 'warning') return 'warning';
+  return 'good';
 }
 
 function kOhmToIAQ(kOhm: number): number {
