@@ -116,7 +116,7 @@ function ChartCard({ title, unit, color, data, labels, stats, idealLow, idealHig
             labels: safeLabels,
             datasets: [{ data: safeData, color: () => color, strokeWidth: 4 }],
           }}
-          width={CHART_W - 32}
+          width={CHART_W + 32}
           height={CHART_H}
           chartConfig={{
             backgroundColor:              color + '08',
@@ -142,7 +142,7 @@ function ChartCard({ title, unit, color, data, labels, stats, idealLow, idealHig
           withOuterLines={false}
           withVerticalLabels={true}
           withHorizontalLabels={true}
-          style={{ borderRadius: 0, marginLeft: -20 }}
+          style={{ borderRadius: 0, marginLeft: -16, marginRight: -16 }}
         />
       </View>
 

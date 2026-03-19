@@ -85,9 +85,14 @@ function iaqStatus(iaq: number): Status {
   return 'poor';
 }
 function noiseStatus(v: number): Status {
-  if (v < 1000)  return 'good';
-  if (v <= 3000) return 'warning';
+  if (v < 500)  return 'good';
+  if (v <= 1500) return 'warning';
   return 'poor';
+}
+function noiseLabel(v: number): string {
+  if (v < 500)  return 'Quiet';
+  if (v <= 1500) return 'Moderate';
+  return 'Loud';
 }
 function overallStatus(row: SensorRow): Status {
   // Use iaq_score from DB if available (matches what the card shows).
@@ -434,7 +439,7 @@ export default function DashboardScreen() {
 
       {/* Header */}
       <View style={[styles.header, isPoor && styles.headerPoor]}>
-        <Text style={[styles.appName, isPoor && styles.onRed]}>Celsius</Text>
+        <Text style={[styles.appName, isPoor && !isGrey && styles.onRed]}>CELSIUS</Text>
         <View style={styles.headerRight}>
           <Animated.View style={[
             styles.liveDot,
@@ -503,11 +508,11 @@ export default function DashboardScreen() {
             />
             <SensorCard
               label="Noise"
-              value={data.noise < 1000 ? 'Quiet' : data.noise < 3000 ? 'Moderate' : 'Loud'}
-              unit=""
+              value={String(data.noise)}
+              unit={noiseLabel(data.noise)}
               status={noiseStatus(data.noise)}
               progress={data.noise / 4095}
-              range="< 1,000 quiet"
+              range="< 500 quiet"
               anomaly={nzAnomaly}
             />
           </View>
@@ -561,7 +566,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#C6C6C8',
   },
   headerPoor:  { backgroundColor: 'transparent', borderBottomWidth: 0 },
-  appName:     { fontSize: 17, fontWeight: '700', color: '#000000', letterSpacing: -0.3 },
+  appName:     { fontSize: 28, fontWeight: '800', color: '#000000', letterSpacing: 1.5 },
   onRed:       { color: '#FFFFFF' },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   liveDot:     { width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#34C759' },
@@ -609,7 +614,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
+    paddingTop: 10,
     borderTopWidth: 3,
     justifyContent: 'space-between',
     shadowColor: '#000000',
@@ -618,11 +624,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  cardHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
+  cardHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 0 },
   cardLabel:     { fontSize: 9, fontWeight: '700', color: '#8E8E93', letterSpacing: 0.8 },
   cardValueWrap: { flex: 1, justifyContent: 'center' },
-  cardNum:       { fontSize: 48, fontWeight: '800', letterSpacing: -1, lineHeight: 56 },
-  cardUnit:      { fontSize: 13, fontWeight: '600', opacity: 0.75, marginTop: 2 },
+  cardNum:       { fontSize: 46, fontWeight: '800', letterSpacing: -1, lineHeight: 52 },
+  cardUnit:      { fontSize: 12, fontWeight: '600', opacity: 0.75, marginTop: 1 },
   bar:           { height: 3, backgroundColor: '#F2F2F7', borderRadius: 1.5, overflow: 'hidden', marginBottom: 4 },
   barFill:       { height: '100%', borderRadius: 1.5 },
   rangeText:     { fontSize: 9, color: '#C7C7CC' },

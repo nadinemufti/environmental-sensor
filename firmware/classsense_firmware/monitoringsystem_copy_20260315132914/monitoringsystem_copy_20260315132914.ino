@@ -165,7 +165,23 @@ void loop() {
   bool newData = readBsec();
 
   if (newData) {
-    g_noise = analogRead(MIC_PIN);
+    // ── Noise: peak-to-peak amplitude over 50 ms ───────────────────────────
+    // A single analogRead of an AC audio signal catches it at an arbitrary
+    // phase and almost always returns ~2048 (the MAX9814 bias midpoint).
+    // Peak-to-peak over a short window gives real amplitude:
+    //   quiet room  ~10-80   ADC counts
+    //   conversation ~200-600
+    //   loud noise   >800
+    {
+      int lo = 4095, hi = 0;
+      unsigned long t0 = millis();
+      while (millis() - t0 < 50) {
+        int s = analogRead(MIC_PIN);
+        if (s < lo) lo = s;
+        if (s > hi) hi = s;
+      }
+      g_noise = hi - lo;   // 0-4095 peak-to-peak amplitude
+    }
 
     // ── Per-sensor classification ───────────────────────────────────────────
     // IAQ 0-500 (lower = better)

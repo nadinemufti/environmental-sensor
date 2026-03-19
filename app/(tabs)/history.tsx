@@ -51,8 +51,8 @@ function aqStatus(v: number): Status {
   return 'poor';
 }
 function noiseStatus(v: number): Status {
-  if (v < 1000)  return 'good';
-  if (v <= 3000) return 'warning';
+  if (v < 500)  return 'good';
+  if (v <= 1500) return 'warning';
   return 'poor';
 }
 
@@ -208,7 +208,7 @@ function DayGroupCard({
               {avgAq.toFixed(0)} kΩ
             </Text>
             <Text style={[styles.avgChip, { color: C[nS].fg, backgroundColor: C[nS].bg }]}>
-              {avgNoise < 1000 ? 'Quiet' : avgNoise <= 3000 ? 'Moderate' : 'Loud'}
+              {avgNoise < 500 ? 'Quiet' : avgNoise <= 1500 ? 'Moderate' : 'Loud'}
             </Text>
           </View>
         </View>
